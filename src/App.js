@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+
 import './App.css';
 
 export default class App extends Component {
@@ -6,7 +7,10 @@ export default class App extends Component {
     super(props);
     this.state = {
       data: [],
-      sortToggle: true
+      sort: {
+        key: null,
+        toggle: null
+      }
     };
   }
 
@@ -16,16 +20,16 @@ export default class App extends Component {
       .then(data => this.setState({ data }));
   }
 
-  sortData(key) {
+  sortData = (key) => {
     let sortedData = this.state.data;
     sortedData.sort((a, b) => {
       let aKey = a[key];
       let bKey = b[key];
-      if(key === "address") {
+      if (key === "address") {
         aKey = JSON.stringify(a[key]);
         bKey = JSON.stringify(b[key]);
       }
-      if (this.state.sortToggle) {
+      if (this.state.sort.toggle) {
         bKey = [aKey, aKey = bKey][0];
       }
       if (aKey > bKey)
@@ -36,43 +40,81 @@ export default class App extends Component {
     });
     this.setState({
       data: sortedData,
-      sortToggle: !this.state.sortToggle
+      sort: {
+        key: key,
+        toggle: !this.state.sort.toggle
+      }
     });
   }
 
   render() {
-    const header = [];
+    const headerContent = [];
     for (let key in this.state.data[0]) {
-      header.push(key);
-    }
+      headerContent.push(key);
+    };
+    const header = headerContent.map((headerKey, i) => {
+      let toggle = null;
+      if (headerKey === this.state.sort.key) {
+        toggle = this.state.sort.toggle
+      }
+      return (<HeaderCell
+        headerKey={headerKey}
+        sortToggle={toggle}
+        sortDataCallback={() => this.sortData(headerKey)} />
+      );
+    })
+
+    const rows = this.state.data.map((userData, i) => {
+        return(<PersonRow key={i} userData={userData} />);
+      }
+    );
 
     return (
       <div className="container">
         <table>
           <tbody>
-            <tr>{header.map((key, i) => (
-              <th key={i} onClick={() => this.sortData(key)}>
-                {key}
-              </th>
-            ))}</tr>
-            {this.state.data.map((element, i) => {
-              const address = Object.keys(element.address).map((k, i) => (
-                <div key={i}>{k + ': ' + element.address[k]}</div>)
-              )
-
-              return (<tr key={i}>
-                <td>{element.id}</td>
-                <td>{element.firstName}</td>
-                <td>{element.lastName}</td>
-                <td>{element.email}</td>
-                <td>{element.phone}</td>
-                <td>{address}</td>
-                <td>{element.description}</td>
-              </tr>);
-            })}
+            <tr>
+            {header}
+            </tr>
+            {rows}
           </tbody>
         </table>
-      </div>
+      </div >
     );
   }
+}
+
+function HeaderCell(props) {
+  let toggleSign = '';
+  if (props.sortToggle === true) {
+    toggleSign = " [v]"
+  } else if (props.sortToggle === false) {
+    toggleSign = " [^]"
+  }
+
+  return (
+    <th onClick={() => props.sortDataCallback()}>
+      {props.headerKey + toggleSign}
+    </th>
+  );
+}
+
+function PersonRow(props) {
+  const userData = props.userData;
+
+  const address = Object.keys(userData.address).map((k, i) => (
+    <div key={i}>{k + ': ' + userData.address[k]}</div>)
+  );
+
+  return (
+  <tr>
+    <td>{userData.id}</td>
+    <td>{userData.firstName}</td>
+    <td>{userData.lastName}</td>
+    <td>{userData.email}</td>
+    <td>{userData.phone}</td>
+    <td>{address}</td>
+    <td>{userData.description}</td>
+  </tr>
+  );
 }
