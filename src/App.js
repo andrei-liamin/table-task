@@ -10,7 +10,9 @@ export default class App extends Component {
       sort: {
         key: null,
         toggle: null
-      }
+      },
+      pageNumber: 1,
+      rowsPerPage: 5
     };
   }
 
@@ -43,8 +45,15 @@ export default class App extends Component {
       sort: {
         key: key,
         toggle: !this.state.sort.toggle
-      }
+      },
+      pageNumber: 1
     });
+  }
+
+  showPage = (pageNumber) => {
+    this.setState({
+      pageNumber: pageNumber
+    })
   }
 
   render() {
@@ -58,19 +67,39 @@ export default class App extends Component {
         toggle = this.state.sort.toggle
       }
       return (<HeaderCell
+        key={i}
         headerKey={headerKey}
         sortToggle={toggle}
         sortDataCallback={() => this.sortData(headerKey)} />
       );
     })
 
-    const rows = this.state.data.map((userData, i) => {
-        return(<PersonRow key={i} userData={userData} />);
-      }
-    );
+    const pages = Math.ceil(this.state.data.length / this.state.rowsPerPage);
+    const endIndex = this.state.pageNumber * this.state.rowsPerPage
+    const startIndex = endIndex - this.state.rowsPerPage;
+    const rowsPage = this.state.data.slice(startIndex, endIndex);
+    const rows = rowsPage.map((personData, i) => {
+      return (<PersonRow key={i} personData={personData} />);
+    });
+    const pagesCount = [];
+    for(let i=1; i<=pages; i++) {
+      pagesCount.push(i);
+    }
+    const navigation = pagesCount.map((pageNumber, i) => {
+      const navButtonStyle = this.state.pageNumber === pageNumber ? "active-nav-button" : "";
+      return(
+        <button
+          className={navButtonStyle}
+          key={i}
+          onClick={() => this.showPage(pageNumber)} >
+          {pageNumber}
+        </button>
+      )
+    })
 
     return (
       <div className="container">
+        <div className="navigation">{navigation}</div>
         <table>
           <tbody>
             <tr>
@@ -79,6 +108,7 @@ export default class App extends Component {
             {rows}
           </tbody>
         </table>
+        <div className="navigation">{navigation}</div>
       </div >
     );
   }
@@ -100,21 +130,21 @@ function HeaderCell(props) {
 }
 
 function PersonRow(props) {
-  const userData = props.userData;
+  const personData = props.personData;
 
-  const address = Object.keys(userData.address).map((k, i) => (
-    <div key={i}>{k + ': ' + userData.address[k]}</div>)
+  const address = Object.keys(personData.address).map((k, i) => (
+    <div key={i}>{k + ': ' + personData.address[k]}</div>)
   );
 
   return (
   <tr>
-    <td>{userData.id}</td>
-    <td>{userData.firstName}</td>
-    <td>{userData.lastName}</td>
-    <td>{userData.email}</td>
-    <td>{userData.phone}</td>
+    <td>{personData.id}</td>
+    <td>{personData.firstName}</td>
+    <td>{personData.lastName}</td>
+    <td>{personData.email}</td>
+    <td>{personData.phone}</td>
     <td>{address}</td>
-    <td>{userData.description}</td>
+    <td>{personData.description}</td>
   </tr>
   );
 }

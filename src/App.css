@@ -31,3 +31,18 @@ tbody tr:hover {
 .thumb, .thumbY {
   background: rgba(0, 0, 0, 1);
 }
+
+.navigation {
+  display: flex;
+}
+
+button {
+  cursor: pointer;
+}
+
+.active-nav-button {
+  margin: 5px;
+  background-color: lightslategray;
+  color: white;
+  cursor: auto;
+}
