@@ -50,10 +50,20 @@ export default class App extends Component {
     });
   }
 
-  showPage = (pageNumber) => {
-    this.setState({
-      pageNumber: pageNumber
-    })
+  showPage = (pageNumber, pages) => {
+    if (pageNumber === "-" && this.state.pageNumber > 1) {
+      this.setState({
+        pageNumber: this.state.pageNumber - 1
+      })
+    } else if (pageNumber === "+" && this.state.pageNumber < pages) {
+      this.setState({
+        pageNumber: this.state.pageNumber + 1
+      })
+    } else if (Number.isInteger(pageNumber)) {
+      this.setState({
+        pageNumber: pageNumber
+      })
+    }
   }
 
   render() {
@@ -82,33 +92,50 @@ export default class App extends Component {
       return (<PersonRow key={i} personData={personData} />);
     });
     const pagesCount = [];
-    for(let i=1; i<=pages; i++) {
+    for (let i = 1; i <= pages; i++) {
       pagesCount.push(i);
     }
-    const navigation = pagesCount.map((pageNumber, i) => {
-      const navButtonStyle = this.state.pageNumber === pageNumber ? "active-nav-button" : "";
-      return(
-        <button
-          className={navButtonStyle}
-          key={i}
-          onClick={() => this.showPage(pageNumber)} >
-          {pageNumber}
+    const navigation = () => {
+      const pageButtons = pagesCount.map((pageNumber, i) => {
+        const navButtonStyle = this.state.pageNumber === pageNumber ? "active-nav-button" : "";
+        return (
+          <button
+            className={navButtonStyle}
+            key={i}
+            onClick={() => this.showPage(pageNumber, pages)} >
+            {pageNumber}
+          </button>
+        )
+      })
+      return (
+        <div>
+          <button
+            onClick={() => this.showPage("-", pages)} >
+            Prev
         </button>
-      )
-    })
+          {pageButtons}
+          <button
+            onClick={() => this.showPage("+", pages)} >
+            Next
+        </button>
+        </div>
+      );
+    }
 
     return (
-      <div className="container">
-        <div className="navigation">{navigation}</div>
+      <div className="container" >
+        <div className="navigation">{navigation()}</div>
         <table>
           <tbody>
             <tr>
-            {header}
+              {header}
             </tr>
             {rows}
           </tbody>
         </table>
-        <div className="navigation">{navigation}</div>
+        <div className="navigation">
+          {navigation()}
+        </div>
       </div >
     );
   }
@@ -137,14 +164,14 @@ function PersonRow(props) {
   );
 
   return (
-  <tr>
-    <td>{personData.id}</td>
-    <td>{personData.firstName}</td>
-    <td>{personData.lastName}</td>
-    <td>{personData.email}</td>
-    <td>{personData.phone}</td>
-    <td>{address}</td>
-    <td>{personData.description}</td>
-  </tr>
+    <tr>
+      <td>{personData.id}</td>
+      <td>{personData.firstName}</td>
+      <td>{personData.lastName}</td>
+      <td>{personData.email}</td>
+      <td>{personData.phone}</td>
+      <td>{address}</td>
+      <td>{personData.description}</td>
+    </tr>
   );
 }
