@@ -12,7 +12,8 @@ export default class App extends Component {
         toggle: null
       },
       pageNumber: 1,
-      rowsPerPage: 5
+      rowsPerPage: 5,
+      filter: ''
     };
   }
 
@@ -66,6 +67,13 @@ export default class App extends Component {
     }
   }
 
+  filterByString = (e) => {
+    this.setState({
+      pageNumber: 1,
+      filter: e.target.value.toLowerCase()
+    })
+  }
+
   render() {
     const headerContent = [];
     for (let key in this.state.data[0]) {
@@ -84,10 +92,13 @@ export default class App extends Component {
       );
     })
 
-    const pages = Math.ceil(this.state.data.length / this.state.rowsPerPage);
+    const filteredData = this.state.data.filter((row) => {
+      return (JSON.stringify(row).toLowerCase().includes(this.state.filter))
+    })
+    const pages = Math.ceil(filteredData.length / this.state.rowsPerPage);
     const endIndex = this.state.pageNumber * this.state.rowsPerPage
     const startIndex = endIndex - this.state.rowsPerPage;
-    const rowsPage = this.state.data.slice(startIndex, endIndex);
+      const rowsPage = filteredData.slice(startIndex, endIndex);
     const rows = rowsPage.map((personData, i) => {
       return (<PersonRow key={i} personData={personData} />);
     });
@@ -123,8 +134,15 @@ export default class App extends Component {
     }
 
     return (
-      <div className="container" >
-        <div className="navigation">{navigation()}</div>
+      <div className="container">
+        <div className="filter">
+          <input
+            onChange={(e) => this.filterByString(e)}
+            placeholder="Поиск" ></input>
+        </div>
+        <div className="navigation">
+          {navigation()}
+        </div>
         <table>
           <tbody>
             <tr>
