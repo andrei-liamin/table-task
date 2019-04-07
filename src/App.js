@@ -214,7 +214,7 @@ class NewRow extends React.Component {
       },
     },
   };
-  
+
   constructor(props) {
     super(props);
 
@@ -228,6 +228,7 @@ class NewRow extends React.Component {
     this.state = {
       newRow: newNewRow,
       validateResult: validate(newNewRow, this.constraints),
+      formDisplay: false
     };
   }
 
@@ -242,11 +243,11 @@ class NewRow extends React.Component {
   }
 
   render() {
-    return (
+    const addNewRowForm = this.state.formDisplay ? (
       <div>
         <ul>
-          <li>ID <input name="id" onChange={(e) => this.handleInputChange(e)} /> 
-            {(this.state.validateResult) ? this.state.validateResult.id : " V" } 
+          <li>ID <input name="id" onChange={(e) => this.handleInputChange(e)} />
+            {(this.state.validateResult) ? this.state.validateResult.id : " V"}
           </li>
           <li>First Name <input name="firstName" onChange={(e) => this.handleInputChange(e)} />
             {(this.state.validateResult) ? this.state.validateResult.firstName : " V"}
@@ -266,6 +267,13 @@ class NewRow extends React.Component {
           onClick={() => this.props.addNewRowCallback(this.state.newRow)} >
           Add in the Table
         </button>
+      </div>
+    ) : (<div></div>);
+
+    return (
+      <div>
+        <button onClick={() => {this.setState({formDisplay: !this.state.formDisplay})}}>Show/hide add new Person form</button>
+        {addNewRowForm}
       </div>
     );
   }
