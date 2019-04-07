@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 
 import './App.css';
+import validate from "validate.js";
 
 export default class App extends Component {
   constructor(props) {
@@ -75,6 +76,23 @@ export default class App extends Component {
     })
   }
 
+  addNewRow = (newRow) => {
+    /* 
+    address.streetAddress}</b></li>
+      <li>Город: <b>{activePersonData.address.city}</b></li>
+      <li>Провинция/штат: <b>{activePersonData.address.state}</b></li>
+      <li>Индекс: <b>{activePersonData.address.zip}</b></li>
+    */
+    newRow.address = {};
+    newRow.description = null;
+
+    const newData = this.state.data.slice();
+    newData.unshift(newRow);
+    this.setState({
+      data: newData
+    })
+  }
+
   render() {
     const headerContent = [];
     for (let key in this.state.data[0]) {
@@ -140,6 +158,9 @@ export default class App extends Component {
 
     return (
       <div className="container">
+        <NewRow
+          className="new-row"
+          addNewRowCallback={this.addNewRow} />
         <div className="filter">
           <input
             onChange={(e) => this.filterByString(e)}
@@ -159,8 +180,93 @@ export default class App extends Component {
         <div className="navigation">
           {navigation()}
         </div>
-        <ActivePersonCard activePersonData={this.state.activePersonData}/>
+        <ActivePersonCard activePersonData={this.state.activePersonData} />
       </div >
+    );
+  }
+}
+
+class NewRow extends React.Component {
+  constraints = {
+    id: {
+      numericality: {
+        onlyInteger: true,
+        greaterThan: 0,
+        notValid: "must be positive integer"
+      },
+      presence: true,
+    },
+    firstName: {
+      presence: true,
+    },
+    lastName: {
+      presence: true,
+    },
+    email: {
+      email: true,
+      presence: true,
+    },
+    phone: {
+      presence: true,
+      format: {
+        pattern: /\(\d\d\d\)\d\d\d-\d\d\d\d/,
+        message: "has to be like:(993)001-3064",
+      },
+    },
+  };
+  
+  constructor(props) {
+    super(props);
+
+    const newNewRow = {
+      id: null,
+      firstName: null,
+      lastName: null,
+      email: null,
+      phone: null
+    };
+    this.state = {
+      newRow: newNewRow,
+      validateResult: validate(newNewRow, this.constraints),
+    };
+  }
+
+  handleInputChange = (e) => {
+    const newNewRow = JSON.parse(JSON.stringify(this.state.newRow));
+    newNewRow[e.target.name] = e.target.value
+
+    this.setState({
+      newRow: newNewRow,
+      validateResult: validate(newNewRow, this.constraints)
+    });
+  }
+
+  render() {
+    return (
+      <div>
+        <ul>
+          <li>ID <input name="id" onChange={(e) => this.handleInputChange(e)} /> 
+            {(this.state.validateResult) ? this.state.validateResult.id : " V" } 
+          </li>
+          <li>First Name <input name="firstName" onChange={(e) => this.handleInputChange(e)} />
+            {(this.state.validateResult) ? this.state.validateResult.firstName : " V"}
+          </li>
+          <li>Last Name <input name="lastName" onChange={(e) => this.handleInputChange(e)} />
+            {(this.state.validateResult) ? this.state.validateResult.lastName : " V"}
+          </li>
+          <li>Email <input name="email" onChange={(e) => this.handleInputChange(e)} />
+            {(this.state.validateResult) ? this.state.validateResult.email : " V"}
+          </li>
+          <li>Phone <input name="phone" onChange={(e) => this.handleInputChange(e)} />
+            {(this.state.validateResult) ? this.state.validateResult.phone : " V"}
+          </li>
+        </ul>
+        <button
+          disabled={this.state.validateResult !== undefined}
+          onClick={() => this.props.addNewRowCallback(this.state.newRow)} >
+          Add in the Table
+        </button>
+      </div>
     );
   }
 }
@@ -173,7 +279,7 @@ function ActivePersonCard(props) {
     content = <p>no selected user</p>;
   } else {
     content = (<ul>
-      <li>Выбран пользователь <b>{activePersonData.firstName+' '+activePersonData.lastName}</b></li>
+      <li>Выбран пользователь <b>{activePersonData.firstName + ' ' + activePersonData.lastName}</b></li>
       <li>Описание:<textarea>{activePersonData.description}</textarea></li>
       <li>Адрес проживания: <b>{activePersonData.address.streetAddress}</b></li>
       <li>Город: <b>{activePersonData.address.city}</b></li>
@@ -182,7 +288,7 @@ function ActivePersonCard(props) {
     </ul>);
   }
   return (
-    <div className="row-value">        
+    <div className="row-value">
       {content}
     </div>
   );
