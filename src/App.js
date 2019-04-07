@@ -78,12 +78,6 @@ export default class App extends Component {
   }
 
   addNewRow = (newRow) => {
-    /* 
-    address.streetAddress}</b></li>
-      <li>Город: <b>{activePersonData.address.city}</b></li>
-      <li>Провинция/штат: <b>{activePersonData.address.state}</b></li>
-      <li>Индекс: <b>{activePersonData.address.zip}</b></li>
-    */
     newRow.address = {};
     newRow.description = null;
 

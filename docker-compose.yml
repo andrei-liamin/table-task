@@ -1,0 +1,18 @@
+version: '3.5'
+
+services:
+  frontend:
+    container_name: frontend
+    build:
+      context: ./
+    volumes:
+      - './:/data'
+      # don't overwrite installed node modules in the container
+      - '/data/node_modules'
+    ports:
+      - '3000:3000'
+      # web socket for hot-reload
+      - '35729:35729'
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
