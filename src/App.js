@@ -3,26 +3,27 @@ import React, { Component } from 'react';
 import './App.css';
 import validate from "validate.js";
 
+const AppLoadingState = {
+  beforeFirstLoad: 1, // show only source selector
+  loading: 2, // show that it loads something
+  loaded: 3, // show the table
+}
+
 export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      loadingState: AppLoadingState.beforeFirstLoad,
       data: [],
       sort: {
         key: null,
         toggle: null
       },
       pageNumber: 1,
-      rowsPerPage: 5,
+      rowsPerPage: 50,
       filter: '',
       activePersonData: null
     };
-  }
-
-  componentDidMount() {
-    fetch('http://www.filltext.com/?rows=32&id=%7Bnumber%7C1000%7D&firstName=%7BfirstName%7D&lastName=%7BlastName%7D&email=%7Bemail%7D&phone=%7Bphone%7C(xxx)xxx-xx-xx%7D&address=%7BaddressObject%7D&description=%7Blorem%7C32%7D')
-      .then(response => response.json())
-      .then(data => this.setState({ data }));
   }
 
   sortData = (key) => {
@@ -89,11 +90,46 @@ export default class App extends Component {
     const newData = this.state.data.slice();
     newData.unshift(newRow);
     this.setState({
-      data: newData
+      data: newData,
+      pageNumber: 1
     })
   }
 
+  setSourceType = (e) => {
+    const small = 'http://www.filltext.com/?rows=32&id=%7Bnumber%7C1000%7D&firstName=%7BfirstName%7D&lastName=%7BlastName%7D&email=%7Bemail%7D&phone=%7Bphone%7C(xxx)xxx-xx-xx%7D&address=%7BaddressObject%7D&description=%7Blorem%7C32%7D';
+    const big = 'http://www.filltext.com/?rows=1000&id={number|1000}&firstName={firstName}&delay=3&lastName={lastName}&email={email}&phone={phone|(xxx)xxx-xx-xx}&address={addressObject}&description={lorem|32}';
+    const selectedSource = (e.target.value === 'small') ? small : big;
+
+    fetch(selectedSource)
+      .then(response => response.json())
+      .then(data => this.setState({ data, loadingState: AppLoadingState.loaded }));
+    this.setState({
+      loadingState: AppLoadingState.loading
+    });
+  }
+
   render() {
+    const sourceSelectorGroup = (
+      <div onChange={this.setSourceType}>
+        <h2>select source type:</h2>
+        <input type="radio" value="small" name="sourceType" /> small
+        <input type="radio" value="BIG" name="sourceType" /> BIG
+      </div>
+    );
+    if (this.state.loadingState === AppLoadingState.beforeFirstLoad) {
+      return sourceSelectorGroup;
+    } else if (this.state.loadingState === AppLoadingState.loading) {
+      return (
+        <div>
+          <p>I am working on fetching the data from the server...</p>
+          <div>
+            <h3>this page is still responsive. you can click on this radio buttons:</h3>
+            <input type="radio" value="1" name="sourceType" /> 1
+            <input type="radio" value="2" name="sourceType" /> 2
+          </div>
+        </div>);
+    } // below is Loaded state
+
     const headerContent = [];
     for (let key in this.state.data[0]) {
       headerContent.push(key);
@@ -158,6 +194,7 @@ export default class App extends Component {
 
     return (
       <div className="container">
+        {sourceSelectorGroup}
         <NewRow
           className="new-row"
           addNewRowCallback={this.addNewRow} />
@@ -272,7 +309,7 @@ class NewRow extends React.Component {
 
     return (
       <div>
-        <button onClick={() => {this.setState({formDisplay: !this.state.formDisplay})}}>Show/hide add new Person form</button>
+        <button onClick={() => { this.setState({ formDisplay: !this.state.formDisplay }) }}>Show/hide add new Person form</button>
         {addNewRowForm}
       </div>
     );
@@ -288,7 +325,7 @@ function ActivePersonCard(props) {
   } else {
     content = (<ul>
       <li>Выбран пользователь <b>{activePersonData.firstName + ' ' + activePersonData.lastName}</b></li>
-      <li>Описание:<textarea>{activePersonData.description}</textarea></li>
+      <li>Описание:<textarea value={activePersonData.description} readOnly={true} /></li>
       <li>Адрес проживания: <b>{activePersonData.address.streetAddress}</b></li>
       <li>Город: <b>{activePersonData.address.city}</b></li>
       <li>Провинция/штат: <b>{activePersonData.address.state}</b></li>
