@@ -13,7 +13,8 @@ export default class App extends Component {
       },
       pageNumber: 1,
       rowsPerPage: 5,
-      filter: ''
+      filter: '',
+      activePersonData: null
     };
   }
 
@@ -93,14 +94,18 @@ export default class App extends Component {
     })
 
     const filteredData = this.state.data.filter((row) => {
-      return (JSON.stringify(row).toLowerCase().includes(this.state.filter))
+      return (JSON.stringify(Object.values(row)).toLowerCase().includes(this.state.filter))
     })
     const pages = Math.ceil(filteredData.length / this.state.rowsPerPage);
     const endIndex = this.state.pageNumber * this.state.rowsPerPage
     const startIndex = endIndex - this.state.rowsPerPage;
-      const rowsPage = filteredData.slice(startIndex, endIndex);
+    const rowsPage = filteredData.slice(startIndex, endIndex);
     const rows = rowsPage.map((personData, i) => {
-      return (<PersonRow key={i} personData={personData} />);
+      return (
+        <PersonRow
+          key={i}
+          setActiveRowCallback={(personData) => this.setState({ activePersonData: personData })}
+          personData={personData} />);
     });
     const pagesCount = [];
     for (let i = 1; i <= pages; i++) {
@@ -138,7 +143,7 @@ export default class App extends Component {
         <div className="filter">
           <input
             onChange={(e) => this.filterByString(e)}
-            placeholder="Поиск" ></input>
+            placeholder="Search" ></input>
         </div>
         <div className="navigation">
           {navigation()}
@@ -154,9 +159,33 @@ export default class App extends Component {
         <div className="navigation">
           {navigation()}
         </div>
+        <ActivePersonCard activePersonData={this.state.activePersonData}/>
       </div >
     );
   }
+}
+
+function ActivePersonCard(props) {
+  const { activePersonData } = props;
+
+  let content = null;
+  if (activePersonData === null) {
+    content = <p>no selected user</p>;
+  } else {
+    content = (<ul>
+      <li>Выбран пользователь <b>{activePersonData.firstName+' '+activePersonData.lastName}</b></li>
+      <li>Описание:<textarea>{activePersonData.description}</textarea></li>
+      <li>Адрес проживания: <b>{activePersonData.address.streetAddress}</b></li>
+      <li>Город: <b>{activePersonData.address.city}</b></li>
+      <li>Провинция/штат: <b>{activePersonData.address.state}</b></li>
+      <li>Индекс: <b>{activePersonData.address.zip}</b></li>
+    </ul>);
+  }
+  return (
+    <div className="row-value">        
+      {content}
+    </div>
+  );
 }
 
 function HeaderCell(props) {
@@ -175,14 +204,14 @@ function HeaderCell(props) {
 }
 
 function PersonRow(props) {
-  const personData = props.personData;
+  const { personData } = props;
 
   const address = Object.keys(personData.address).map((k, i) => (
     <div key={i}>{k + ': ' + personData.address[k]}</div>)
   );
 
   return (
-    <tr>
+    <tr onClick={() => props.setActiveRowCallback(personData)}>
       <td>{personData.id}</td>
       <td>{personData.firstName}</td>
       <td>{personData.lastName}</td>
